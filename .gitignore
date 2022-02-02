@@ -1,0 +1,5 @@
+frontendplot/node_modules/
+frontendplot/.env
+
+backendplot/.env
+backendplot/.flaskenv
