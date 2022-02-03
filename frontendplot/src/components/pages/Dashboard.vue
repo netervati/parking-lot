@@ -11,25 +11,21 @@ export default {
     name: 'Dashboard',
     data(){
         return {
-            apiMsg: ''
+            apiMsg: '',
+            jwtToken: ''
         }
     },
     methods:{
         async retrieveData(){
             const response = await this.$http.get(' ',
-                {
-                headers: {
-                    Accept: 'application/json',
-                    'Content-type': 'application/json'
-                    }   
-                }
-            )
-            this.apiMsg = response.data.Api
+            { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: this.jwtToken}})
+            this.apiMsg = response.data
         }
     },
-    mounted(){
-        this.retrieveData()
-    }
+    // mounted(){
+    //     this.jwtToken = localStorage.getItem('plot-ok')
+    //     this.retrieveData()
+    // }
 }
 </script>
 
