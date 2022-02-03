@@ -1,6 +1,5 @@
 <template>
-    <div class="row">
-        <nav class="navbar p-1 navbar-expand-lg navbar-light bg-warning shadow-sm">
+    <nav class="navbar p-1 navbar-expand-lg navbar-dark bg-main shadow-sm mb-3">
         <div class="container-fluid">
             <router-link class="text-decoration-none" to="/"><a class="navbar-brand"><b>PARKING SYSTEM</b></a></router-link>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -9,20 +8,33 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <router-link class="text-decoration-none" to="/"><a class="nav-link"><b>Dashboard</b></a></router-link>
+                        <router-link class="text-decoration-none" to="/"><a v-bind:class="setClasses('Dashboard')"><b>Dashboard</b></a></router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link class="text-decoration-none" to="/login"><a class="nav-link"><b>Login</b></a></router-link>
+                        <a v-on:click="logout()" role="button" v-bind:class="setClasses()"><b>Logout</b></a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-    </div>
 </template>
 
 <script>
     export default {
-        name: 'Menu'
+        name: 'Menu',
+        methods:{
+            logout(){
+                localStorage.removeItem('plotid')
+                this.$router.push({ name: 'Login'})
+            },
+            setClasses(name){
+                if (name == this.$route.name){
+                    return "nav-link active"
+                }
+                else{
+                    return "nav-link"
+                }
+            }
+        }
     }
 </script>

@@ -1,31 +1,39 @@
 <template>
     <div class="row">
+        <Menu />
         <div class="col-lg-12">
-            <p v-text="apiMsg"></p>
         </div>
     </div>
 </template>
 
 <script>
+import Menu from '../layout/Menu.vue'
+
 export default {
     name: 'Dashboard',
+    components:{
+        Menu
+    },
     data(){
         return {
-            apiMsg: '',
-            jwtToken: ''
         }
     },
     methods:{
         async retrieveData(){
             const response = await this.$http.get(' ',
-            { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: this.jwtToken}})
-            this.apiMsg = response.data
+            { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')}})
+            if (response.data['users']){
+                // this.apiMsg = response.data
+            }  
+            else{
+                localStorage.removeItem('plotid')
+                this.$router.push({ name: 'Login'})
+            }
         }
     },
-    // mounted(){
-    //     this.jwtToken = localStorage.getItem('plot-ok')
-    //     this.retrieveData()
-    // }
+    mounted(){
+        this.retrieveData()
+    }
 }
 </script>
 
