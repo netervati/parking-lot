@@ -25,4 +25,16 @@ html, body{
 .form-label{
   font-weight: bolder;
 }
+.registry{
+  height: 500px;
+}
+.registry-table thead tr th{
+  font-size: 16px;
+}
+.registry-table tbody tr td{
+  font-size: 14px;
+}
+.bg-main-light{
+  background-color: #F5F9FD;
+}
 </style>

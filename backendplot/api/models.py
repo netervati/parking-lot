@@ -21,14 +21,21 @@ class User(db.Model):
     created_on = db.Column(db.DateTime)
     updated_on = db.Column(db.DateTime, default=datetime.datetime.utcnow())
 
-    entrance = db.relationship('Entrance', backref='user', lazy=True)
-
     @property
     def serialize(self):
         return {
            'id'         : self.id,
            'username'      : self.username,
            'password'      : self.password,
+           'created_on'       : dump_datetime(self.created_on),
+           'updated_on'       : dump_datetime(self.updated_on),
+        }
+    
+    @property
+    def serialize_excludepass(self):
+        return {
+           'id'         : self.id,
+           'username'      : self.username,
            'created_on'       : dump_datetime(self.created_on),
            'updated_on'       : dump_datetime(self.updated_on),
         }
@@ -45,6 +52,9 @@ class Entrance(db.Model):
     updated_on = db.Column(db.DateTime, default=datetime.datetime.utcnow())
     created_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
     updated_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
+    
+    author = db.relationship('User', foreign_keys=[created_by])
+    rewriter = db.relationship('User', foreign_keys=[updated_by])
 
     @property
     def serialize(self):

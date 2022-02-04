@@ -9,7 +9,7 @@ const MAIN_APP = createApp(App)
 axios.defaults.baseURL = process.env.VUE_APP_API_URL
 MAIN_APP.config.globalProperties.$http = axios
 router.beforeEach((to, from, next) => {
-    document.title = to.name
+    document.title = to.matched[0].name
     next()
 })
 
