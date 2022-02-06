@@ -6,32 +6,32 @@
                     <div class="row">
                         <div class="col-12 col-md-4">
                             <div class="input-group input-group-sm mb-3">
-                                <span class="input-group-text" id="addon-search"><i class="fas fa-search"></i></span>
-                                <input type="text" class="form-control" placeholder="Search text..." aria-label="Username" aria-describedby="addon-search">
+                                <span class="input-group-text" id="addon-search"><i class="bi bi-search"></i></span>
+                                <input v-model="curSearch" type="text" class="form-control" placeholder="Search text..." aria-label="Username" aria-describedby="addon-search">
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
-                            <select class="form-select form-select-sm mb-3" aria-label="Select Sort">
+                            <select v-model="curSort" class="form-select form-select-sm mb-3" aria-label="Select Sort">
                                 <option disabled>Select Sort</option>
                                 <option selected value="1">Created On (Desc)</option>
                                 <option value="2">Created On (Asc)</option>
-                                <option value="3">Name (Desc)</option>
-                                <option value="4">Name (Asc)</option>
+                                <option value="3">Username (Desc)</option>
+                                <option value="4">Username (Asc)</option>
+                                <option value="5">Full Name (Desc)</option>
+                                <option value="6">Full Name (Asc)</option>
                             </select>
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
-                            <button class="btn btn-sm btn-outline-dark w-100">Filter</button>
+                            <button v-on:click="retrieveData()" class="btn btn-sm btn-outline-dark w-100"> <i class="bi bi-filter-square"></i> Filter</button>
                         </div>
-                        <div class="col-12 col-sm-6 col-md-4">
+                        <div class="col-6 col-sm-3 col-md-2">
+                            <button title="New Record" v-on:click="newData()" class="btn btn-sm btn-success"><i class="bi bi-journal-plus"></i> New</button>
+                        </div>
+                        <div class="col-6 col-sm-6 col-md-2">
                             <nav aria-label="Page navigation example">
                                 <ul class="pagination pagination-sm float-end">
-                                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">4</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">5</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                                    <li id="btn-prev" v-bind:class="setPaginationClass('btn-prev')"><a class="page-link" href="#" :disabled="allowPrev == true" v-on:click="goPrev()">Previous</a></li>
+                                    <li id="btn-next" v-bind:class="setPaginationClass('btn-next')"><a class="page-link" href="#" :disabled="allowNext == true" v-on:click="goNext()">Next</a></li>
                                 </ul>
                             </nav>
                         </div>
@@ -39,24 +39,26 @@
                 </div>
                 <div class="col-12 registry">
                     <div class="table-responsive-sm overflow-x">
-                        <table class="table table-sm table-bordered registry-table w-100">
+                        <table class="table table-sm table-bordered registry-table">
                             <thead>
                                 <tr class="text-center bg-light">
                                     <th>Actions</th>
                                     <th>Username</th>
+                                    <th>Full Name</th>
                                     <th>Created On</th>
                                     <th>Updated On</th>
                                 </tr>
                             </thead>
-                            <tbody v-for="data in registryData" v-bind:key="data"  class="bg-white">
-                                <tr>
+                            <tbody class="bg-white">
+                                <tr v-for="data in registryData" v-bind:key="data">
                                     <td class="text-center">
-                                        <button v-on:click="openData(data.username)" title="Edit Record" class="btn btn-sm btn-outline-primary m-1"><i class="fas fa-edit"></i></button>
-                                        <button title="Delete Record" class="btn btn-sm btn-outline-danger m-1"><i class="fas fa-trash"></i></button>
+                                        <button v-on:click="openData(data.id)" title="Edit Record" class="btn btn-sm btn-outline-primary m-1"><i class="bi bi-pencil-square"></i></button>
+                                        <button v-on:click="requestDelete(data.id)" title="Delete Record" class="btn btn-sm btn-outline-danger m-1"><i class="bi bi-trash-fill"></i></button>
                                     </td>
-                                    <td class="text-center">{{data.username}}</td>
-                                    <td class="text-center">{{data.created_on}}</td>
-                                    <td class="text-center">{{data.updated_on}}</td>
+                                    <td>{{data.username}}</td>
+                                    <td>{{data.fullname}}</td>
+                                    <td>{{data.created_on}}</td>
+                                    <td>{{data.updated_on}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -68,32 +70,115 @@
 </template>
 
 <script>
+import Swal from 'sweetalert2'
+
 export default {
     name: 'UserRegistry',
     data(){
         return{
-            registryData: []
+            registryData: [],
+            allowPrev: false,
+            allowNext: false,
+            curPage: 0,
+            curSort: 1,
+            curSearch: ''
         }
     },
     methods:{
         async retrieveData(){
-            const response = await this.$http.get(' ', 
-            { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')} })
-            if (response.data['users']){
-                this.registryData = response.data['users']
-            }  
-            else{
-                if (response.data['error'] == 401){
+            const response = await this.$http.get('/user/registry/', 
+            { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')}, params: {page: this.curPage, sort: this.curSort, search:this.curSearch} })
+            if (!response.data['users']){
+                if (response.data['response'] == 401){
                     localStorage.removeItem('plotid')
                     this.$router.push({ name: 'Login'})
                 }
+                return 
+            }  
+            let data = response.data['users']
+            if (response.data['users'].length == response.data['limit'] || response.data['users'].length == 0){
+                this.allowNext = false
             }
+            else{
+                this.allowNext = true
+                data.pop()
+            }
+            this.registryData = response.data['users']
+        },
+        newData(){
+            this.$router.push({ path: '/user/f', query: { action: 1 } })
         },
         openData(value){
-            this.$router.push({ path: '/user/f', query: { id: value, action: '2' } })
-        }
+            this.$router.push({ path: '/user/f', query: { id: value, action: 2 } })
+        },
+        async deleteData(value){
+            const response = await this.$http.post('/user/form/', {id: value, action: '3'},
+            { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')}})
+            if (response.data['response'] != 200){
+                if (response.data['response'] == 401){
+                    localStorage.removeItem('plotid')
+                    this.$router.push({ name: 'Login'})
+                }
+                return this.popup('error', 'Error.', 'Your record was not deleted.', 1500)
+            }
+            this.retrieveData()
+            return this.popup('success', 'Success.', 'Record deleted from the database!', 1500)
+        },
+        async requestDelete(value){
+            let confirm = await Swal.fire({
+                title: 'Confirm Action.',
+                text: "Are you sure you want to delete this record?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) return true
+                return false
+            })
+            if (confirm == true) this.deleteData(value)
+        },  
+        goPrev(){
+            this.curPage--
+            if (this.curPage == 0) this.allowPrev = false
+            this.$router.replace({path: 'user', query:{page: this.curPage} })
+            this.retrieveData()
+        },
+        goNext(){
+            this.curPage++
+            this.allowPrev = true
+            this.$router.replace({path: 'user', query:{page: this.curPage} })
+            this.retrieveData()
+        },
+        setPaginationClass(e){
+            if (e == 'btn-next'){
+                if (this.allowNext == true){
+                    return 'page-item'
+                }
+                return 'page-item disabled'
+            }
+            else{
+                if (this.allowPrev == true){
+                    return 'page-item'
+                }
+                return 'page-item disabled'
+            }
+        },
+        popup(result, title, msg){
+            Swal.fire({
+                icon: result,
+                title: title,
+                text: msg,
+                timer: 1500
+            })
+        },
     },
     mounted(){
+        if (this.$route.query.submit == 1){
+            let successmsg = this.$route.query.prevaction == 1 ? 'Record added in the database!' : 'Record edited!'
+            this.popup('success', 'Success.', successmsg, 1500)
+        }
         this.retrieveData()
     }
 }

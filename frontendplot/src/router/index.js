@@ -1,11 +1,11 @@
 
 import  {createRouter, createWebHistory } from 'vue-router'
-import Dashboard from '../components/pages/Dashboard.vue'
+import Dashboard from '../components/pages/dashboard/core.vue'
 import Entrance from '../components/pages/Entrance.vue'
 import User from '../components/pages/user/core.vue'
 import UserRegistry from '../components/pages/user/registry.vue'
 import UserForm from '../components/pages/user/form.vue'
-import Login from '../components/pages/Login.vue'
+import Login from '../components/pages/login/core.vue'
 
 
 const routes = [

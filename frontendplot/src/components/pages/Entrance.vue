@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import Menu from '../layout/Menu.vue'
+import Menu from '../layout/menu.vue'
 
 export default {
     name: 'Entrance',

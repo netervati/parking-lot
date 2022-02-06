@@ -12,6 +12,8 @@ export default {
 
 <style>
 @import "~bootstrap/dist/css/bootstrap.min.css";
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+
 .bg-main{
   background-color: #080F5B;
 }

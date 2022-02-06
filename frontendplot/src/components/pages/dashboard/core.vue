@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import Menu from '../layout/Menu.vue'
+import Menu from '../../layout/menu.vue'
 
 export default {
     name: 'Dashboard',
@@ -24,6 +24,7 @@ export default {
             { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')}})
             if (response.data['users']){
                 // this.apiMsg = response.data
+                console.log(response.data)
             }  
             else{
                 localStorage.removeItem('plotid')
