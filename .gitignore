@@ -3,3 +3,4 @@ frontendplot/.env
 
 backendplot/.env
 backendplot/.flaskenv
+backendplot/pass.key
