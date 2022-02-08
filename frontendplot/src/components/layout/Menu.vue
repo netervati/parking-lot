@@ -11,13 +11,16 @@
                         <router-link class="text-decoration-none" to="/"><a v-bind:class="setClasses('Dashboard',0)"><i class="bi bi-speedometer2"></i> Dashboard</a></router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link class="text-decoration-none" to="/"><a v-bind:class="setClasses('Parking',0)"><i class="bi bi-truck"></i> Parking</a></router-link>
+                        <router-link class="text-decoration-none" to="/parking"><a v-bind:class="setClasses('Parking',0)"><i class="bi bi-truck"></i> Parking</a></router-link>
+                    </li>
+                    <li class="nav-item">
+                        <router-link class="text-decoration-none" to="/"><a v-bind:class="setClasses('Layout',0)"><i class="bi bi-map"></i> Layout</a></router-link>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder2-open"></i> Masterfiles</a>
+                        <a v-bind:class="setParentClasses()" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder2-open"></i> Masterfiles</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li><router-link class="text-decoration-none" to="/entrance"><a v-bind:class="setClasses('Entrance',1)"><i class="bi bi-box-arrow-in-right"></i> Entrance</a></router-link></li>
-                            <li><a v-bind:class="setClasses('Spot',1)" href="#"><i class="bi bi-cone-striped"></i> Spot</a></li>
+                            <li><router-link class="text-decoration-none" to="/spot"><a v-bind:class="setClasses('Spot',1)" href="#"><i class="bi bi-cone-striped"></i> Spot</a></router-link></li>
                         </ul>
                     </li>
                     <li class="nav-item">
@@ -44,6 +47,15 @@
             setClasses(name,type){
                 let defaultclass = type == 0 ? 'nav-link' : 'dropdown-item'
                 if (name == this.$route.matched[0].name){
+                    return `${defaultclass} active`
+                }
+                else{
+                    return defaultclass
+                }
+            },
+            setParentClasses(){
+                let defaultclass = 'nav-link dropdown-toggle'
+                if (this.$route.matched[0].name == 'Entrance' || this.$route.matched[0].name == 'Spot'){
                     return `${defaultclass} active`
                 }
                 else{

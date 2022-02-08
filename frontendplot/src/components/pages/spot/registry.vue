@@ -15,10 +15,8 @@
                                 <option disabled>Select Sort</option>
                                 <option selected value="1">Created On (Desc)</option>
                                 <option value="2">Created On (Asc)</option>
-                                <option value="3">Username (Desc)</option>
-                                <option value="4">Username (Asc)</option>
-                                <option value="5">Full Name (Desc)</option>
-                                <option value="6">Full Name (Asc)</option>
+                                <option value="3">Label (Desc)</option>
+                                <option value="4">Label (Asc)</option>
                             </select>
                         </div>
                         <div class="col-6 col-sm-3 col-md-2">
@@ -43,9 +41,12 @@
                             <thead>
                                 <tr class="text-center bg-light">
                                     <th>Actions</th>
-                                    <th>Username</th>
-                                    <th>Full Name</th>
+                                    <th>Label</th>
+                                    <th>Size</th>
+                                    <th>Availability</th>
                                     <th>Created On</th>
+                                    <th>Updated On</th>
+                                    <th>Created By</th>
                                     <th>Updated By</th>
                                 </tr>
                             </thead>
@@ -55,10 +56,20 @@
                                         <button v-on:click="openData(data.id)" title="Edit Record" class="btn btn-sm btn-outline-primary m-1"><i class="bi bi-pencil-square"></i></button>
                                         <button v-on:click="requestDelete(data.id)" title="Delete Record" class="btn btn-sm btn-outline-danger m-1"><i class="bi bi-trash-fill"></i></button>
                                     </td>
-                                    <td>{{data.username}}</td>
-                                    <td>{{data.fullname}}</td>
+                                    <td>{{data.label}}</td>
+                                    <td>
+                                        <span v-if="data.size == 1" class="badge bg-secondary w-100">Small</span>
+                                        <span v-else-if="data.size == 2" class="badge bg-warning w-100">Medium</span>
+                                        <span v-else class="badge bg-info w-100">Large</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <b class="text-success" v-if="data.open == true">Free</b>
+                                        <b class="text-danger" v-else>Occupied</b>
+                                    </td>
                                     <td>{{data.created_on}}</td>
                                     <td>{{data.updated_on}}</td>
+                                    <td>{{data.created_by}}</td>
+                                    <td>{{data.updated_by}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -73,7 +84,7 @@
 import Swal from 'sweetalert2'
 
 export default {
-    name: 'UserRegistry',
+    name: 'SpotRegistry',
     data(){
         return{
             registryData: [],
@@ -86,7 +97,7 @@ export default {
     },
     methods:{
         async retrieveData(){
-            const response = await this.$http.get('/user/registry/', 
+            const response = await this.$http.get('/spot/registry/', 
             { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')}, params: {page: this.curPage, sort: this.curSort, search:this.curSearch} })
             if (!response.data['records']){
                 if (response.data['response'] == 401){
@@ -106,13 +117,13 @@ export default {
             this.registryData = response.data['records']
         },
         newData(){
-            this.$router.push({ path: '/user/f', query: { action: 1 } })
+            this.$router.push({ path: '/spot/f', query: { action: 1 } })
         },
         openData(value){
-            this.$router.push({ path: '/user/f', query: { id: value, action: 2 } })
+            this.$router.push({ path: '/spot/f', query: { id: value, action: 2 } })
         },
         async deleteData(value){
-            const response = await this.$http.post('/user/form/', {id: value, action: '3'},
+            const response = await this.$http.post('/spot/form/', {id: value, action: '3'},
             { headers: { Accept: 'application/json', 'Content-type': 'application/json', Authorization: localStorage.getItem('plotid')}})
             if (response.data['response'] != 200){
                 if (response.data['response'] == 401){
@@ -142,13 +153,13 @@ export default {
         goPrev(){
             this.curPage--
             if (this.curPage == 0) this.allowPrev = false
-            this.$router.replace({path: 'user', query:{page: this.curPage} })
+            this.$router.replace({path: '/spot', query:{page: this.curPage} })
             this.retrieveData()
         },
         goNext(){
             this.curPage++
             this.allowPrev = true
-            this.$router.replace({path: 'user', query:{page: this.curPage} })
+            this.$router.replace({path: '/spot', query:{page: this.curPage} })
             this.retrieveData()
         },
         setPaginationClass(e){
