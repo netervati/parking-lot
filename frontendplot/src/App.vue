@@ -27,8 +27,11 @@ html, body{
 .form-label{
   font-weight: bolder;
 }
-.registry{
+.table-responsive{
   height: 500px;
+}
+.registry{
+  height: 600px;
 }
 .registry-table thead tr th{
   font-size: 16px;

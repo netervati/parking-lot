@@ -13,9 +13,6 @@
                     <li class="nav-item">
                         <router-link class="text-decoration-none" to="/parking"><a v-bind:class="setClasses('Parking',0)"><i class="bi bi-truck"></i> Parking</a></router-link>
                     </li>
-                    <li class="nav-item">
-                        <router-link class="text-decoration-none" to="/"><a v-bind:class="setClasses('Layout',0)"><i class="bi bi-map"></i> Layout</a></router-link>
-                    </li>
                     <li class="nav-item dropdown">
                         <a v-bind:class="setParentClasses()" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-folder2-open"></i> Masterfiles</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">

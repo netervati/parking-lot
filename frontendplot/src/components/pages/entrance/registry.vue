@@ -45,7 +45,6 @@
                                     <th>Created On</th>
                                     <th>Updated On</th>
                                     <th>Created By</th>
-                                    <th>Updated By</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white">
@@ -58,7 +57,6 @@
                                     <td>{{data.created_on}}</td>
                                     <td>{{data.updated_on}}</td>
                                     <td>{{data.created_by}}</td>
-                                    <td>{{data.updated_by}}</td>
                                 </tr>
                             </tbody>
                         </table>

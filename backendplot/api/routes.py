@@ -59,14 +59,16 @@ def diff_dates(start_date, end_date):
 # RESTFUL ENDPOINTS
 class Auth(Resource):
     def post(self):
-        secret_key = os.environ.get('SECRET_KEY')
-        post_data = request.json
-        match_data = [i.serialize for i in User.query.filter_by(username=post_data['username'])]
-        if len(match_data) > 0:
-            if check_password_hash(match_data[0]['password'], post_data['password']):
-                token = jwt.encode({'user': match_data[0]['id'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15) }, secret_key)
-                return jsonify({'token': token.decode('utf-8')})
-        return {'message': 'Authentication Failed. Could not match the provided user credentials.'}
+        try:
+            secret_key = os.environ.get('SECRET_KEY')
+            post_data = request.json
+            match_data = [i.serialize for i in User.query.filter_by(username=post_data['username'])]
+            if len(match_data) > 0:
+                if check_password_hash(match_data[0]['password'], post_data['password']):
+                    token = jwt.encode({'user': match_data[0]['id'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15) }, secret_key)
+                    return jsonify({'token': token.decode('utf-8')})
+        except:
+            return {'message': 'Authentication Failed. Could not match the provided user credentials.'}
 
 class Dashboard(Resource):
     method_decorators = [token_required]
@@ -74,12 +76,24 @@ class Dashboard(Resource):
         curDate = str(datetime.datetime.now().date())
         stats = {}
         currentParked = Parking.query.filter(Parking.parked_on.between(curDate + ' 00:00:00', curDate + ' 23:59:00'),Parking.total_fee == 0).count()
+        smallParked = Parking.query.filter(Parking.parked_on.between(curDate + ' 00:00:00', curDate + ' 23:59:00'),Parking.vehicle_size == 1).count()
+        mediumParked = Parking.query.filter(Parking.parked_on.between(curDate + ' 00:00:00', curDate + ' 23:59:00'),Parking.vehicle_size == 2).count()
+        largeParked = Parking.query.filter(Parking.parked_on.between(curDate + ' 00:00:00', curDate + ' 23:59:00'),Parking.vehicle_size == 3).count()
         freeSpots = Spot.query.filter(Spot.open == True).count()
         todayProfit = Parking.query.with_entities(db.func.sum(Parking.total_fee).label('total')).filter(Parking.parked_on.between(curDate + ' 00:00:00', curDate + ' 23:59:00')).first().total
-        stats['todayProfit'] = str(todayProfit)
+        peakHours = []
+        if todayProfit > 0 or currentParked > 0:
+            hoursList = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+            for hour in hoursList:
+                getParked = Parking.query.filter(Parking.parked_on.between( '{} {}:00:00'.format(curDate,hour), '{} {}:59:00'.format(curDate,hour))).count()
+                peakHours.append(getParked)
+
+        stats['todayProfit'] = str(todayProfit) if todayProfit is not None  else 0
         stats['freeSpots'] = str(freeSpots)
         stats['currentParked'] = str(currentParked)
-        return {'stats': stats}
+        stats['peakHours'] = peakHours
+        stats['vehicleType'] = [smallParked, mediumParked, largeParked]
+        return jsonify(stats=stats)
 
 class ParkingRegistry(Resource):
     method_decorators = [token_required]
@@ -122,8 +136,9 @@ class ParkingForm(Resource):
                 if not post_data['entrance_id'] and not post_data['parked_on'] and not post_data['vehicle_plateno'] and not post_data['vehicle_size']: return {'response': 400}
                 get_spot = get_nearest_spot(post_data['entrance_id'],post_data['vehicle_size'])
                 prev_id = ''
-                get_prev = model.query.filter_by(vehicle_plateno=post_data['vehicle_plateno']).order_by(model.unparked_on.desc()).first().serialize
-                if get_prev:
+                check_prev = model.query.filter_by(vehicle_plateno=post_data['vehicle_plateno']).order_by(model.unparked_on.desc()).first()
+                if check_prev:
+                    get_prev = model.query.filter_by(vehicle_plateno=post_data['vehicle_plateno']).order_by(model.unparked_on.desc()).first().serialize
                     diff_in_hours = diff_dates(get_prev['unparked_on'],post_data['parked_on'])
                     if diff_in_hours < 0: 
                         return {'response': 400}
@@ -143,9 +158,10 @@ class ParkingForm(Resource):
                     created_on=datetime.datetime.now(),
                     updated_on=datetime.datetime.now(),
                     created_by=to_decrypt(USRDATA['user']),
-                    updated_by=to_decrypt(USRDATA['user']))
+                    )
                 db.session.add(insert_data)
-            except:
+            except Exception as error:
+                print(error)
                 db.session.rollback()
                 return {'response': 400}
             
@@ -153,7 +169,6 @@ class ParkingForm(Resource):
             try:
                 match_data.open = False
                 match_data.updated_on = datetime.datetime.now()
-                match_data.updated_by = to_decrypt(USRDATA['user'])
                 db.session.commit()
             except:
                 db.session.rollback()
@@ -195,7 +210,6 @@ class ParkingForm(Resource):
                 match_data.unparked_on = post_data['unparked_on']
                 match_data.total_fee = total_fee
                 match_data.updated_on = datetime.datetime.now()
-                match_data.updated_by = to_decrypt(USRDATA['user'])
                 
             except:
                 db.session.rollback()
@@ -204,7 +218,6 @@ class ParkingForm(Resource):
             try:
                 match_data.open = True
                 match_data.updated_on = datetime.datetime.now()
-                match_data.updated_by = to_decrypt(USRDATA['user'])
                 db.session.commit()
             except:
                 db.session.rollback()
@@ -221,7 +234,6 @@ class ParkingForm(Resource):
             try:
                 match_subdata.open = True
                 match_subdata.updated_on = datetime.datetime.now()
-                match_subdata.updated_by = to_decrypt(USRDATA['user'])
                 db.session.commit()
             except:
                 db.session.rollback()
@@ -277,7 +289,7 @@ class EntranceForm(Resource):
                     created_on=datetime.datetime.now(),
                     updated_on=datetime.datetime.now(),
                     created_by=to_decrypt(USRDATA['user']),
-                    updated_by=to_decrypt(USRDATA['user']))
+                    )
                 db.session.add(insert_data)
                 db.session.commit()
             except:
@@ -288,7 +300,6 @@ class EntranceForm(Resource):
             try:
                 match_data.label = post_data['label']
                 match_data.updated_on = datetime.datetime.now()
-                match_data.updated_by = to_decrypt(USRDATA['user'])
                 db.session.commit()
             except:
                 db.session.rollback()
@@ -362,8 +373,7 @@ class SpotForm(Resource):
                     size=post_data['size'],
                     created_on=datetime.datetime.now(),
                     updated_on=datetime.datetime.now(),
-                    created_by=jwtuser,
-                    updated_by=jwtuser)
+                    created_by=jwtuser)
                 db.session.add(insert_data)
                 db.session.commit()
                 inserted_id = insert_data.id
@@ -382,10 +392,10 @@ class SpotForm(Resource):
                             spot = inserted_id,
                             created_on=datetime.datetime.now(),
                             updated_on=datetime.datetime.now(),
-                            created_by=jwtuser,
-                            updated_by=jwtuser)
+                            created_by=jwtuser)
                     )
                 db.session.bulk_save_objects(objects)
+                db.session.commit()
             except:
                 db.session.rollback()
                 match_data = model.query.get(inserted_id)
@@ -401,7 +411,6 @@ class SpotForm(Resource):
                 match_data.label = post_data['label']
                 match_data.size = post_data['size']
                 match_data.updated_on = datetime.datetime.now()
-                match_data.updated_by = jwtuser
                 objects.append(match_data)
             except:
                 db.session.rollback()
@@ -413,7 +422,6 @@ class SpotForm(Resource):
                         match_subdata = Distance.query.get(value['id'])
                         match_subdata.distance = int(value['distance'])
                         match_subdata.updated_on = datetime.datetime.now()
-                        match_subdata.updated_by = jwtuser
                         objects.append(match_subdata)
                     else:
                         objects.append(
@@ -424,10 +432,10 @@ class SpotForm(Resource):
                                 spot = match_data.id,
                                 created_on=datetime.datetime.now(),
                                 updated_on=datetime.datetime.now(),
-                                created_by=jwtuser,
-                                updated_by=jwtuser)
+                                created_by=jwtuser)
                         )
                 db.session.bulk_save_objects(objects)
+                db.session.commit()
             except:
                 db.session.rollback()
                 return {'response': 400}
@@ -492,13 +500,15 @@ class UserForm(Resource):
         if post_data['action'] == '1':
             try:
                 if not post_data['username'] or not post_data['password'] or not post_data['fullname']: return {'response': 400}
+                jwtuser = to_decrypt(USRDATA['user'])
                 insert_data = model(
                     id=uuid.uuid4(),
                     username=post_data['username'],
                     password=generate_password_hash(post_data['password']),
                     fullname=post_data['fullname'],
                     created_on=datetime.datetime.now(),
-                    updated_on=datetime.datetime.now())
+                    updated_on=datetime.datetime.now(),
+                    created_by=jwtuser)
                 db.session.add(insert_data)
                 db.session.commit()
             except:
@@ -506,6 +516,7 @@ class UserForm(Resource):
                 return {'response': 400}
         elif post_data['action'] == '2':
             match_data = model.query.get(to_decrypt(post_data['id']))
+            jwtuser = to_decrypt(USRDATA['user'])
             try:
                 if "password" in post_data.keys():
                     if not post_data["password"]: 
@@ -533,9 +544,7 @@ class UserForm(Resource):
 # ----------------------------------
 # ----------------------------------
 
-# RESTFUL REGISTRATION
-api.add_resource(BackendTest, '/')
-api.add_resource(ApiTest, '/api/')
+# REGISTRATION ROUTES
 api.add_resource(Auth, '/api/auth/')
 api.add_resource(Dashboard, '/api/dashboard/')
 api.add_resource(ParkingRegistry, '/api/parking/registry/')

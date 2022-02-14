@@ -39,6 +39,12 @@ class User(db.Model):
     fullname = db.Column(db.String(20), nullable=True, unique=True)
     created_on = db.Column(db.DateTime)
     updated_on = db.Column(db.DateTime)
+    created_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=True)
+
+    entrance_author = db.relationship('Entrance', backref='author',lazy='dynamic')
+    spot_author = db.relationship('Spot', backref='author',lazy='dynamic')
+    distance_author = db.relationship('Distance', backref='author',lazy='dynamic')
+    parking_author = db.relationship('Parking', backref='author',lazy='dynamic')
 
     @property
     def serialize(self):
@@ -49,6 +55,7 @@ class User(db.Model):
            'password'      : self.password,
            'created_on'       : dump_datetime(self.created_on),
            'updated_on'       : dump_datetime(self.updated_on),
+           'created_by'       : get_user(self.created_by) if self.created_by is not None else '' 
         }
     
     @property
@@ -59,6 +66,7 @@ class User(db.Model):
            'fullname'      : self.fullname,
            'created_on'       : dump_datetime(self.created_on),
            'updated_on'       : dump_datetime(self.updated_on),
+           'created_by'       : get_user(self.created_by) if self.created_by is not None else ''
         }
 
     def __repr__(self):
@@ -72,10 +80,9 @@ class Entrance(db.Model):
     created_on = db.Column(db.DateTime)
     updated_on = db.Column(db.DateTime)
     created_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    
-    author = db.relationship('User', foreign_keys=[created_by])
-    rewriter = db.relationship('User', foreign_keys=[updated_by])
+
+    distance_entrance = db.relationship('Distance', backref='entry',lazy='dynamic')
+    parking_entrance = db.relationship('Parking', backref='entry',lazy='dynamic')
 
     @property
     def serialize(self):
@@ -84,8 +91,7 @@ class Entrance(db.Model):
            'label'      : self.label,
            'created_on'       : dump_datetime(self.created_on),
            'updated_on'       : dump_datetime(self.updated_on),
-           'created_by'       : get_user(self.created_by),  
-           'updated_by'       : get_user(self.updated_by),  
+           'created_by'       : get_user(self.created_by) 
         }
 
     @property
@@ -108,10 +114,9 @@ class Spot(db.Model):
     created_on = db.Column(db.DateTime)
     updated_on = db.Column(db.DateTime)
     created_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    
-    author = db.relationship('User', foreign_keys=[created_by])
-    rewriter = db.relationship('User', foreign_keys=[updated_by])
+
+    distance_spot = db.relationship('Distance', backref='parkspot',lazy='dynamic')
+    parking_spot = db.relationship('Parking', backref='parkspot',lazy='dynamic')
 
     @property
     def serialize(self):
@@ -122,8 +127,7 @@ class Spot(db.Model):
            'open'      : self.open,
            'created_on'       : dump_datetime(self.created_on),
            'updated_on'       : dump_datetime(self.updated_on),
-           'created_by'       : get_user(self.created_by),  
-           'updated_by'       : get_user(self.updated_by),  
+           'created_by'       : get_user(self.created_by)
         }
 
     def __repr__(self):
@@ -139,12 +143,6 @@ class Distance(db.Model):
     created_on = db.Column(db.DateTime)
     updated_on = db.Column(db.DateTime)
     created_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    
-    entrance_from = db.relationship('Entrance', foreign_keys=[entrance])
-    spot_to = db.relationship('Spot', foreign_keys=[spot])
-    author = db.relationship('User', foreign_keys=[created_by])
-    rewriter = db.relationship('User', foreign_keys=[updated_by])
 
     @property
     def serialize(self):
@@ -166,7 +164,7 @@ class Parking(db.Model):
     vehicle_size = db.Column(db.Integer(), nullable=False)
     entrance_id = db.Column(db.String(256), db.ForeignKey('entrance.id'), nullable=False)
     spot_id = db.Column(db.String(256), db.ForeignKey('spot.id'), nullable=False)
-    spot_size = db.Column(db.String(256), db.ForeignKey('spot.id'), nullable=False)
+    spot_size = db.Column(db.Integer(), nullable=False)
     distance_distance = db.Column(db.Integer(), nullable=False)
     parked_on = db.Column(db.DateTime)
     unparked_on = db.Column(db.DateTime)
@@ -175,12 +173,6 @@ class Parking(db.Model):
     created_on = db.Column(db.DateTime)
     updated_on = db.Column(db.DateTime)
     created_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    updated_by = db.Column(db.String(256), db.ForeignKey('user.id'), nullable=False)
-    
-    entrance_from = db.relationship('Entrance', foreign_keys=[entrance_id])
-    spot_to = db.relationship('Spot', foreign_keys=[spot_id])
-    author = db.relationship('User', foreign_keys=[created_by])
-    rewriter = db.relationship('User', foreign_keys=[updated_by])
 
     @property
     def serialize(self):
@@ -199,8 +191,7 @@ class Parking(db.Model):
            'total_fee'       : self.total_fee, 
            'created_on'       : dump_datetime(self.created_on),
            'updated_on'       : dump_datetime(self.updated_on),
-           'created_by'       : get_user(self.created_by),  
-           'updated_by'       : get_user(self.updated_by),  
+           'created_by'       : get_user(self.created_by)
         }
 
     def __repr__(self):

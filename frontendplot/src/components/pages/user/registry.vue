@@ -46,7 +46,8 @@
                                     <th>Username</th>
                                     <th>Full Name</th>
                                     <th>Created On</th>
-                                    <th>Updated By</th>
+                                    <th>Updated On</th>
+                                    <th>Created By</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white">
@@ -59,6 +60,7 @@
                                     <td>{{data.fullname}}</td>
                                     <td>{{data.created_on}}</td>
                                     <td>{{data.updated_on}}</td>
+                                    <td>{{data.created_by}}</td>
                                 </tr>
                             </tbody>
                         </table>
