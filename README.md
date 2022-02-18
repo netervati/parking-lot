@@ -1,5 +1,5 @@
 # OOP Parking Lot
-![alt text](https://raw.githubusercontent.com/netervati/ketodietlib/main/demo/demosite.gif)
+![System Demo](https://raw.githubusercontent.com/netervati/parking-lot/main/demo/demo.gif)
 
 OOP Parking Lot is a full-stack application designed to manage parking lots. The application implements specific rules on how vehicles are parked, un-parked, and rated. 
 
