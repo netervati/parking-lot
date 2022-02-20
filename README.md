@@ -80,7 +80,7 @@ DEBUG=true
 ```
 7. Then, using the  [Cryptography](https://www.geeksforgeeks.org/fernet-symmetric-encryption-using-cryptography-module-in-python/#:~:text=Python%20supports%20a%20cryptography%20package,encrypt%20and%20decrypt%20methods%20respectively.) package, generate a Fernet key and save it in ```pass.key```
 8. Open the api folder, and check config.py
-9. Replace the ```r'/api/*'``` with the preferred allowed end point for your RESTful backend (remember to make sure that the end point matches the ALLOWED_ORIGIN)
+9. Replace the ```r'/api/*'``` with the preferred allowed end point for your RESTful backend (remember to make sure that the end point matches the VUE_APP_API_URL)
 ```
 CORS(app, resources={r'/api/*': {'origins': os.environ.get('ALLOWED_ORIGIN')}})
 ```
