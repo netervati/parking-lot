@@ -91,11 +91,12 @@ CORS(app, resources={r'/api/*': {'origins': os.environ.get('ALLOWED_ORIGIN')}})
 VUE_APP_API_URL=[YOUR FLASK URL SPECIFICALLY THE ALLOWED ENTRY POINT IN THE CORS]
 ```
 13. Re-open backendplot
-14. Run the following:
+14. Create a database called ```db_plot``` in MySQL
+15. Run the following:
 ```
 $ flask db upgrade
 ```
-15. Run both apps in their respective sub-folders
+16. Run both apps in their respective sub-folders
 ```
 $ flask run # for the backend
 $ npm run serve # for the frontend
